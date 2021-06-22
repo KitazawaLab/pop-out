@@ -3,7 +3,8 @@ import cv2
 from matplotlib import pyplot as plt
 
 def spectral_residual_saliency(img, WIDTH=64):
-    # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    if img.shape[2] == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ratio = int(img.shape[0]/img.shape[1])
     img_n = cv2.resize(img, (WIDTH,WIDTH*ratio), cv2.INTER_LINEAR)
     
