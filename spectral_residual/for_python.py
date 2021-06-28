@@ -1,6 +1,7 @@
-import numpy as np
 import cv2
+import numpy as np
 from matplotlib import pyplot as plt
+
 
 def SpectraResidualSaliency(image):
     h, w, c = image.shape
@@ -25,6 +26,6 @@ def SpectraResidualSaliency(image):
 
     saliencyMap = 0.333*output_saliency[:,:,0] + 0.333*output_saliency[:,:,1] + 0.333*output_saliency[:,:,2]
     saliencyMap = cv2.resize(saliencyMap, (h,w), cv2.INTER_LINEAR_EXACT)
-    saliencyMap = cv2.resize(saliencyMap, (h,w), cv2.INTER_LINEAR_EXACT)
+    saliencyMap = (saliencyMap * 255).astype("uint8")
 
     return saliencyMap
