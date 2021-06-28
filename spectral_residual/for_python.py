@@ -2,21 +2,29 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 
-def spectral_residual_saliency(img, WIDTH=64):
-    if img.shape[2] == 3:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    ratio = int(img.shape[0]/img.shape[1])
-    img_n = cv2.resize(img, (WIDTH,WIDTH*ratio), cv2.INTER_LINEAR)
-    
-    c = cv2.dft(np.float32(img_n), flags = cv2.DFT_COMPLEX_OUTPUT)
-    amp = np.sqrt(c[:,:,0]**2 + c[:,:,1]**2)
-    spectralResidual = np.exp(np.log(1+amp) - cv2.boxFilter(np.log(1+amp), -1, (3,3),cv2.BORDER_DEFAULT))
-    
-    c[:,:,0] = c[:,:,0] * spectralResidual / amp # phase is preserved
-    c[:,:,1] = c[:,:,1] * spectralResidual / amp # phase is preserved
-    c = cv2.dft(c, flags = (cv2.DFT_INVERSE | cv2.DFT_SCALE))
-    amp = c[:,:,0]**2 + c[:,:,1]**2
-    amp = cv2.normalize(cv2.GaussianBlur(amp,(5,5),8,0,cv2.BORDER_DEFAULT), 0., 1., cv2.NORM_MINMAX)
-    amp = cv2.resize(amp, (img.shape[0],img.shape[1]), 0, 0, cv2.INTER_LINEAR)
-    
-    return amp
+def SpectraResidualSaliency(image):
+    h, w, c = image.shape
+    output_saliency = np.zeros((64,64,3))
+
+    for i in range(3):
+        img = image[:,:,i]
+        img = cv2.resize(img, (64,64),cv2.INTER_LINEAR_EXACT)
+
+        fft = cv2.dft(np.float32(img), flags = cv2.DFT_COMPLEX_OUTPUT)
+        amp, phase = cv2.cartToPolar(fft[:,:,0],fft[:,:,1])
+        amp = np.exp(np.log(amp) - cv2.boxFilter(np.log(amp), -1, (3,3),cv2.BORDER_DEFAULT))
+
+        fft[:,:,0], fft[:,:,1] = cv2.polarToCart(amp,phase)
+        ifft = cv2.dft(fft, flags = (cv2.DFT_INVERSE | cv2.DFT_SCALE))
+        amp, phase = cv2.cartToPolar(ifft[:,:,0], ifft[:,:,1])
+        amp = amp**2
+
+        amp = cv2.GaussianBlur(amp,(3,3),8,0,cv2.BORDER_DEFAULT)
+        amp = cv2.normalize(amp, 0., 1., cv2.NORM_MINMAX)
+        output_saliency[:,:,i] = amp
+
+    saliencyMap = 0.333*output_saliency[:,:,0] + 0.333*output_saliency[:,:,1] + 0.333*output_saliency[:,:,2]
+    saliencyMap = cv2.resize(saliencyMap, (h,w), cv2.INTER_LINEAR_EXACT)
+    saliencyMap = cv2.resize(saliencyMap, (h,w), cv2.INTER_LINEAR_EXACT)
+
+    return saliencyMap
