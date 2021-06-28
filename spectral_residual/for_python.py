@@ -7,7 +7,7 @@ def SpectraResidualSaliency(image):
     h, w, c = image.shape
     output_saliency = np.zeros((64,64,3))
 
-    for i in range(3):
+    for i in range(c):
         img = image[:,:,i]
         img = cv2.resize(img, (64,64),cv2.INTER_LINEAR_EXACT)
 
