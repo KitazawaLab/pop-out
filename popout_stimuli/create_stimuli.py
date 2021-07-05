@@ -234,7 +234,7 @@ class CreateStimuli:
         # define rectangle's arrengement
         obj_num = 0
         obj_list = []
-        while obj_num <= object_num:
+        while obj_num <= object_num-1:
             # difine center position
             if obj_num == 0:
                 base_image = np.zeros((self.h,self.w,3), dtype=np.uint8)
